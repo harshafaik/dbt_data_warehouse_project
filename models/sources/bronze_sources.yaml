@@ -1,0 +1,121 @@
+# sql_data_warehouse_project/models/sources/bronze_sources.yaml
+
+version: 2 # This indicates the dbt YAML version, always start with this
+
+sources:
+  # --- CRM Raw Data Sources ---
+  # This 'name' (crm_raw) will be used in your dbt models: {{ source('crm_raw', 'crm_cust_info') }}
+  - name: crm_raw
+    database: main  # Your database name (should be 'postgres' based on previous setup)
+    schema: bronze     # The schema where these raw tables live in PostgreSQL
+
+    tables:
+      - name: crm_cust_info
+        description: "Raw customer information directly from the CRM system. Contains unique customer identifiers and basic profile details."
+        columns:
+          - name: cst_id
+            description: "Unique identifier for the customer in the CRM system (Primary Key)."
+            tests:
+              - unique
+              - not_null
+          - name: cst_key
+            description: "A system-generated key for the customer, potentially used for internal CRM linking."
+          - name: cst_firstname
+            description: "The customer's first name."
+          - name: cst_lastname
+            description: "The customer's last name."
+          - name: cst_marital_status
+            description: "The customer's marital status (e.g., 'Single', 'Married')."
+          - name: cst_gndr
+            description: "The customer's gender."
+          - name: cst_create_date
+            description: "The date when the customer record was first created in the CRM."
+      - name: crm_prd_info
+        description: "Raw product information, including product names, categories, and pricing details from the CRM."
+        columns:
+          - name: prd_id
+            description: "Unique identifier for the product (Primary Key)."
+            tests:
+              - unique
+              - not_null
+          - name: prd_key
+            description: "A system-generated key for the product, potentially used for internal CRM linking."
+          - name: prd_nm
+            description: "The name of the product."
+          - name: prd_cost
+            description: "The internal cost of the product."
+          - name: prd_line
+            description: "The product line or brand the product belongs to."
+          - name: prd_start_dt
+            description: "The effective start date for the product's availability or pricing."
+          - name: prd_end_dt
+            description: "The effective end date for the product's availability or pricing."
+      - name: crm_sales_details
+        description: "Detailed raw sales transaction records from the CRM, including order items and quantities."
+        columns:
+          - name: sls_ord_num
+            description: "Unique identifier for the sales order (Primary Key)."
+            tests:
+              - not_null
+          - name: sls_prd_key
+            description: "Foreign key to the product table (`crm_prd_info`), linking to the specific product sold."
+          - name: sls_cust_id
+            description: "Foreign key to the customer table (`crm_cust_info`), linking to the customer who made the purchase."
+          - name: sls_order_dt
+            description: "The date the sales order was placed."
+          - name: sls_ship_dt
+            description: "The date the order was shipped."
+          - name: sls_due_dt
+            description: "The date payment for the order is due."
+          - name: sls_sales
+            description: "The total sales amount for this line item."
+          - name: sls_quantity
+            description: "The quantity of the product sold in this transaction."
+          - name: sls_price
+            description: "The unit price of the product at the time of sale."
+
+  # --- ERP Raw Data Sources ---
+  # This 'name' (erp_raw) will be used in your dbt models: {{ source('erp_raw', 'erp_cust_az12') }}
+  - name: erp_raw
+    database: main # Your database name
+    schema: bronze     # The schema where these raw tables live in PostgreSQL
+
+    tables:
+      - name: erp_cust_az12
+        description: "Raw customer data from ERP system (version AZ12), potentially for billing or logistics. Contains unique customer identifiers and basic demographic information."
+        columns:
+          - name: cid
+            description: "Unique customer identifier from the ERP system (Primary Key)."
+            tests:
+              - unique
+              - not_null
+          - name: bdate
+            description: "Customer's birth date as recorded in the ERP system."
+          - name: gen
+            description: "Customer's gender as recorded in the ERP system."
+
+      - name: erp_loc_a101
+        description: "Raw location data, possibly for warehouses or physical stores, from ERP system (version A101). Provides details about geographical entities."
+        columns:
+          - name: cid
+            description: "Unique identifier for a physical location (Primary Key)."
+            tests:
+              - unique
+              - not_null
+          - name: cntry
+            description: "Country code or name where the location is situated (e.g., 'US', 'UK', 'Canada')."
+
+      - name: erp_px_cat_g1v2
+        description: "Raw product category data from ERP system (version G1V2), used for inventory management and product categorization."
+        columns:
+          - name: id
+            description: "Unique identifier for a product category (Primary Key)."
+            tests:
+              - unique
+              - not_null
+          - name: cat
+            description: "Main product category name or code (e.g., 'Electronics', 'Home Goods')."
+          - name: subcat
+            description: "Subcategory name or code within the main product category (e.g., 'Smartphones', 'Kitchenware')."
+          - name: maintenance
+            description: "Indicates if the category is under maintenance or contains maintenance-related notes. (Could be a boolean or text field)."

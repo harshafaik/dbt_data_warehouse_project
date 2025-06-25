@@ -1,0 +1,98 @@
+# models/marts/schema.yaml
+
+version: 2
+
+models:
+  - name: dim_customers
+    description: "A conformed dimension table for customers, combining CRM and ERP data."
+    columns:
+      - name: customer_key
+        description: "Unique surrogate key for the customer."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Original customer ID from the CRM system."
+        tests:
+          - not_null
+      - name: customer_number
+        description: "Original customer key from the CRM system, used for joining with ERP."
+      - name: first_name
+        description: "The customer's first name."
+      - name: last_name
+        description: "The customer's last name."
+      - name: country
+        description: "The customer's country from ERP location data."
+      - name: marital_status
+        description: "The customer's marital status."
+      - name: gender
+        description: "The customer's gender, harmonized from CRM and ERP."
+      - name: birthdate
+        description: "The customer's birthdate from ERP."
+      - name: create_date
+        description: "The date the customer record was created in CRM."
+
+  - name: dim_products
+    description: "A conformed dimension table for products, combining CRM and ERP data."
+    columns:
+      - name: product_key
+        description: "Unique surrogate key for the product."
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        description: "Original product ID from CRM."
+        tests:
+          - not_null
+      - name: product_number
+        description: "Original product key from CRM."
+      - name: product_name
+        description: "The name of the product."
+      - name: category_id
+        description: "Original category ID from CRM."
+      - name: category
+        description: "The product's main category from ERP."
+      - name: subcategory
+        description: "The product's subcategory from ERP."
+      - name: maintenance
+        description: "Maintenance status from ERP product categories."
+      - name: product_cost
+        description: "The cost of the product."
+      - name: product_line
+        description: "The product line, harmonized from CRM."
+      - name: start_date
+        description: "The product's effective start date."
+
+  - name: fact_sales
+    description: "A fact table containing sales transactions, linked to customer and product dimensions."
+    columns:
+      - name: order_number
+        description: "The sales order number."
+        tests:
+          - not_null # Order number should not be null
+      - name: product_key
+        description: "Foreign key to the dim_products table."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_products')
+              field: product_key
+      - name: customer_key
+        description: "Foreign key to the dim_customers table."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_key
+      - name: order_date
+        description: "The date the sales order was placed."
+      - name: shipping_date
+        description: "The date the order was shipped."
+      - name: due_date
+        description: "The date payment for the order is due."
+      - name: sales_amount
+        description: "The total sales amount for the transaction line item."
+      - name: quantity
+        description: "The quantity of products sold."
+      - name: price
+        description: "The unit price of the product at the time of sale."

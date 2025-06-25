@@ -1,0 +1,123 @@
+# models/staging/schema.yml
+
+version: 2 # This is the YAML schema version
+
+models:
+  - name: stg_crm_customers
+    description: "Standardized and cleaned customer data derived from the raw CRM source (bronze layer). This model prepares customer attributes for downstream analysis."
+    columns:
+      - name: cst_id
+        description: "Unique identifier for the customer, standardized from cst_id. This is the primary key for the customer staging model."
+        tests:
+          - unique
+          - not_null
+      - name: cst_key
+        description: "An internal key from the CRM system, standardized from cst_key."
+      - name: cst_firstname
+        description: "The customer's first name, standardized from cst_firstname."
+      - name: cst_lastname
+        description: "The customer's last name, standardized from cst_lastname."
+      - name: cst_marital_status
+        description: "The customer's marital status, standardized from cst_marital_status."
+      - name: cst_gndr
+        description: "The customer's gender, standardized from cst_gndr."
+      - name: cst_create_date
+        description: "The date when the customer record was first created in the CRM, standardized from cst_create_date."
+        
+  - name: stg_crm_products
+    description: "Standardized and cleaned product information derived from the raw CRM source (bronze layer). This model prepares product attributes for downstream analysis."
+    columns:
+      - name: prd_id
+        description: "Unique identifier for the product, standardized from prd_id. Primary key for the product staging model."
+        tests:
+          - unique
+          - not_null
+      - name: prd_key
+        description: "Internal system key for the product, standardized from prd_key."
+      - name: prd_nm 
+        description: "Name of the product, standardized from prd_nm."
+      - name: prd_cost
+        description: "Cost of the product, standardized from prd_cost."
+      - name: prd_line
+        description: "Product line or category, standardized from prd_line."
+      - name: prrd_start_dt
+        description: "Date from which the product details are effective, standardized from prd_start_dt."
+      - name: prd_end_dt
+        description: "Date until which the product details are effective, standardized from prd_end_dt."
+
+  - name: stg_crm_sales_details
+    description: "Standardized and cleaned CRM sales transaction details. This model prepares individual sales line items for aggregation and fact table creation."
+    columns:
+      - name: sls_ord_num
+        description: "Unique identifier for the sales order. Acts as a primary key for individual order lines."
+        tests:
+          - not_null # Ensure we always have a sales order number
+      - name: sls_cust_id
+        description: "Foreign key: Links to the customer (from stg_crm_customers). Standardized from sls_cust_id."
+        tests:
+          - not_null # Ensure we always have a customer
+          # Consider adding a relationship test later:
+          # - relationships:
+          #     to: ref('stg_crm_customers')
+          #     field: customer_id
+      - name: sls_prd_key
+        description: "Foreign key: Links to the product (from stg_crm_products, using its internal key). Standardized from sls_prd_key."
+        tests:
+          - not_null # Ensure we always have a product
+          # Consider adding a relationship test later:
+          # - relationships:
+          #     to: ref('stg_crm_products')
+          #     field: product_internal_key # Note: linking to the internal key, not product_id
+      - name: sls_quantity
+        description: "Quantity of the product sold in this transaction detail, standardized from sls_quantity."
+      - name: sls_sales
+        description: "Total sales amount for this transaction detail, standardized from sls_sales."
+      - name: sls_price
+        description: "Unit price of the product at the time of sale, standardized from sls_price."
+      - name: sls_order_dt
+        description: "Date when the order was placed, standardized and cast from sls_order_dt."
+      - name: sls_ship_dt
+        description: "Date when the order was shipped, standardized and cast from sls_ship_dt."
+      - name: sls_due_dt
+        description: "Date when the payment for the order is due, standardized and cast from sls_due_dt."
+
+  - name: stg_erp_customers
+    description: "Standardized and cleaned customer data from the ERP system (version AZ12). Contains basic customer demographic information."
+    columns:
+      - name: cid
+        description: "Unique identifier for the customer from the ERP system, standardized from cid. This is the primary key for the ERP customer staging model."
+        tests:
+          - unique
+          - not_null
+      - name: bdate
+        description: "The customer's birth date, standardized from bdate."
+      - name: gen
+        description: "The customer's gender, standardized from gen."
+  
+  - name: stg_erp_locations
+    description: "Standardized and cleaned location data from the ERP system (version A101). Contains basic location information."
+    columns:
+      - name: cid
+        description: "Unique identifier for the location from the ERP system, standardized from cid. Primary key for the ERP location staging model."
+        tests:
+          - unique
+          - not_null
+      - name: cntry
+        description: "The country name associated with the location, standardized from cntry."
+
+  - name: stg_erp_product_categories
+    description: "Standardized and cleaned product category data from the ERP system (version G1V2). Provides hierarchical product categorization."
+    columns:
+      - name: id
+        description: "Unique identifier for the product category, standardized from id. Primary key for the ERP product category staging model."
+        tests:
+          - unique
+          - not_null
+      - name: cat
+        description: "The main product category name, standardized from cat."
+      - name: subcat
+        description: "The subcategory name within the main category, standardized from subcat."
+      - name: maintenance
+        description: "Status indicating whether the category is under maintenance or active, standardized from maintenance."
+      
+
